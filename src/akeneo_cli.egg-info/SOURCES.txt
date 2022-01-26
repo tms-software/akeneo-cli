@@ -1,0 +1,12 @@
+README.md
+setup.py
+src/akeneo_cli/__init__.py
+src/akeneo_cli/client.py
+src/akeneo_cli/exceptions.py
+src/akeneo_cli/main.py
+src/akeneo_cli.egg-info/PKG-INFO
+src/akeneo_cli.egg-info/SOURCES.txt
+src/akeneo_cli.egg-info/dependency_links.txt
+src/akeneo_cli.egg-info/entry_points.txt
+src/akeneo_cli.egg-info/requires.txt
+src/akeneo_cli.egg-info/top_level.txt

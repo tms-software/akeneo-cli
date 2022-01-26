@@ -1,0 +1,3 @@
+[console_scripts]
+akeneo = akeneo_cli.main:main
+
