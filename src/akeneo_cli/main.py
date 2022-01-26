@@ -26,10 +26,10 @@ def main():
     )
 
     with AkeneoClient(
-        "http://localhost:8080",
-        "5_5fsavriz64wscwwcssw4o4k084so40s8k0gw8skg0wsw4ks00s",
-        "36r6rxx07q80s8k4ow8kgk04ww00wg08kkk8g008k4w888css0",
-    ).login("api_1143", "1de960ceb") as client:
+        os.getenv("AKENEO_URL"),
+        os.getenv("AKENEO_CLIENT_ID"),
+        os.getenv("AKENEO_CLIENT_SECRET")
+    ).login(os.getenv("AKENEO_USERNAME"), os.getenv("AKENEO_PASSWORD")) as client:
         if args.object == "product":
             if args.mode == "get":
                 result = client.get(

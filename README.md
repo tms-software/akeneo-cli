@@ -8,6 +8,12 @@ This package use generic calls to Akeneo api. To know the list of available endp
 CLI
 ---
 
+The CLI itself is a work in progress. Currently only the product can be retrieved with a command like.
+
+```python
+akeneo get product
+```
+
 
 Code
 ----
