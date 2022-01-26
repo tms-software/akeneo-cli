@@ -11,6 +11,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 class AkeneoClient:
 
     refresh_before = 300
@@ -70,7 +71,10 @@ class AkeneoClient:
                 raise Akeneo_NotFound(response)
             else:
                 raise Akeneo_RequestException(response)
-        if "Content-Type" in response.headers and response.headers["Content-Type"] == "application/json":
+        if (
+            "Content-Type" in response.headers
+            and response.headers["Content-Type"] == "application/json"
+        ):
             if (
                 "Content-Length" not in response.headers
                 or int(response.headers["Content-Length"]) > 0

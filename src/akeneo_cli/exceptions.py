@@ -22,8 +22,10 @@ class Akeneo_RequestException(Akeneo_Exception):
             f"ERROR {status_code} {response.request.method} {response.url}\nData sent : {request_body}\nData recieved : {response_body}"
         )
 
+
 class Akeneo_NotFound(Akeneo_RequestException):
     pass
+
 
 class Akeneo_UnexpectedResponse(Akeneo_Exception):
 

@@ -28,7 +28,7 @@ def main():
     with AkeneoClient(
         os.getenv("AKENEO_URL"),
         os.getenv("AKENEO_CLIENT_ID"),
-        os.getenv("AKENEO_CLIENT_SECRET")
+        os.getenv("AKENEO_CLIENT_SECRET"),
     ).login(os.getenv("AKENEO_USERNAME"), os.getenv("AKENEO_PASSWORD")) as client:
         if args.object == "product":
             if args.mode == "get":
