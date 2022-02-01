@@ -71,6 +71,12 @@ class AkeneoClient:
                 raise Akeneo_NotFound(response)
             else:
                 raise Akeneo_RequestException(response)
+
+        prepared_response = dict(
+            headers=response.headers,
+            body=response.text,
+            json=dict(),
+        )
         if (
             "Content-Type" in response.headers
             and response.headers["Content-Type"] == "application/json"
@@ -80,15 +86,12 @@ class AkeneoClient:
                 or int(response.headers["Content-Length"]) > 0
             ):
                 try:
-                    return response.json()
+                    prepared_response["json"] = response.json()
                 except Exception as e:
                     logging.error(
                         f"Error get json from response: {e}:\n{response.text}"
                     )
-        return dict(
-            headers=response.headers,
-            body=response.text,
-        )
+        return prepared_response
 
     def __call_api(
         self,
@@ -125,13 +128,13 @@ class AkeneoClient:
             path_suffix="api/oauth",
         )
         self.__check_response_struct(
-            ["access_token", "refresh_token", "expires_in"], result
+            ["access_token", "refresh_token", "expires_in"], result["json"]
         )
         self.__expiration_date = datetime.now() + timedelta(
-            seconds=result["expires_in"]
+            seconds=result["json"]["expires_in"]
         )
-        self.__token = result["access_token"]
-        self.__refresh_token = result["refresh_token"]
+        self.__token = result["json"]["access_token"]
+        self.__refresh_token = result["json"]["refresh_token"]
 
     def __call_authenticated_api(
         self,
@@ -232,28 +235,29 @@ class AkeneoClient:
 
         if all:
             result = self.__call_authenticated_api(path, filters=filters)
+            json = result["json"]
             next_page = False
-            if "_links" in result and "next" in result["_links"]:
-                next_page = result["_links"]["next"]["href"]
+            if "_links" in json and "next" in json["_links"]:
+                next_page = json["_links"]["next"]["href"]
             while next_page:
                 next_result = self.__call_authenticated_url(next_page)
-                result["_embedded"]["items"] = (
-                    result["_embedded"]["items"] + next_result["_embedded"]["items"]
+                json["_embedded"]["items"] = (
+                    json["_embedded"]["items"] + next_result["_embedded"]["items"]
                 )
                 if "_links" in next_result and "next" in next_result["_links"]:
                     next_page = next_result["_links"]["next"]["href"]
                 else:
                     next_page = False
-            del result["_links"]
-            del result["current_page"]
+            del json["_links"]
+            del json["current_page"]
         else:
             result = self.__call_authenticated_api(path, filters=filters)
         return result
 
     def get_next_page(self, result):
         next_result = None
-        if "_links" in result and "next" in result["_links"]:
-            next_page = result["_links"]["next"]["href"]
+        if "_links" in result["json"] and "next" in result["json"]["_links"]:
+            next_page = result["json"]["_links"]["next"]["href"]
             next_result = self.__call_authenticated_url(next_page)
         return next_result
 
