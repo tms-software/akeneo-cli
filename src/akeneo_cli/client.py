@@ -85,9 +85,10 @@ class AkeneoClient:
                     logging.error(
                         f"Error get json from response: {e}:\n{response.text}"
                     )
-            return dict()
-        else:
-            return response.text
+        return dict(
+            headers=response.headers,
+            body=response.text,
+        )
 
     def __call_api(
         self,
@@ -207,9 +208,9 @@ class AkeneoClient:
         type,
         code=None,
         sub_type=None,
-        sub_type_code=None,
+        sub_code=None,
         sub_sub_type=None,
-        sub_sub_type_code=None,
+        sub_sub_code=None,
         filters=dict(),
         all=False,
     ):
@@ -220,17 +221,18 @@ class AkeneoClient:
         if sub_type is not None:
             path += f"/{sub_type}"
 
-        if sub_type_code is not None:
-            path += f"/{sub_type_code}"
+        if sub_code is not None:
+            path += f"/{sub_code}"
 
         if sub_sub_type is not None:
             path += f"/{sub_sub_type}"
 
-        if sub_sub_type_code is not None:
-            path += f"/{sub_sub_type_code}"
+        if sub_sub_code is not None:
+            path += f"/{sub_sub_code}"
 
         if all:
             result = self.__call_authenticated_api(path, filters=filters)
+            next_page = False
             if "_links" in result and "next" in result["_links"]:
                 next_page = result["_links"]["next"]["href"]
             while next_page:
@@ -260,17 +262,17 @@ class AkeneoClient:
         type,
         code,
         sub_type=None,
-        sub_type_code=None,
+        sub_code=None,
         sub_sub_type=None,
-        sub_sub_type_code=None,
+        sub_sub_code=None,
     ):
         path = f"{type}/{code}"
 
         if sub_type is not None:
-            path += f"/{sub_type}/{sub_type_code}"
+            path += f"/{sub_type}/{sub_code}"
 
         if sub_sub_type is not None:
-            path += f"/{sub_sub_type}/{sub_sub_type_code}"
+            path += f"/{sub_sub_type}/{sub_sub_code}"
 
         return self.__call_authenticated_api(path, method="DELETE")
 
@@ -279,18 +281,18 @@ class AkeneoClient:
         type,
         code,
         sub_type=None,
-        sub_type_code=None,
+        sub_code=None,
         sub_sub_type=None,
-        sub_sub_type_code=None,
+        sub_sub_code=None,
         data=dict(),
     ):
         path = f"{type}/{code}"
 
         if sub_type is not None:
-            path += f"/{sub_type}/{sub_type_code}"
+            path += f"/{sub_type}/{sub_code}"
 
         if sub_sub_type is not None:
-            path += f"/{sub_sub_type}/{sub_sub_type_code}"
+            path += f"/{sub_sub_type}/{sub_sub_code}"
 
         return self.__call_authenticated_api(path, method="POST", data=data)
 
@@ -299,18 +301,18 @@ class AkeneoClient:
         type,
         code,
         sub_type=None,
-        sub_type_code=None,
+        sub_code=None,
         sub_sub_type=None,
-        sub_sub_type_code=None,
+        sub_sub_code=None,
         data=dict(),
     ):
         path = f"{type}/{code}"
 
         if sub_type is not None:
-            path += f"/{sub_type}/{sub_type_code}"
+            path += f"/{sub_type}/{sub_code}"
 
         if sub_sub_type is not None:
-            path += f"/{sub_sub_type}/{sub_sub_type_code}"
+            path += f"/{sub_sub_type}/{sub_sub_code}"
 
         return self.__call_authenticated_api(path, method="PATCH", data=data)
 
@@ -332,16 +334,50 @@ class AkeneoClient:
             data=post_data,
         )
 
-    def put_file(self, type, filepath, data=[]):
-        post_data = dict()
-        for key in data.keys():
-            post_data[key] = f"{json.dumps(data[key])}\n"
+    def put_product_file(
+        self,
+        identifier,
+        attribute_code,
+        filepath,
+        locale=None,
+        scope=None,
+        is_model=False,
+    ):
+        post_data = dict(file=filepath)
+        if is_model:
+            product_data = dict(
+                code=identifier,
+                attribute=attribute_code,
+                locale=locale,
+                scope=scope,
+            )
+            post_data["product_model"] = f"{json.dumps(product_data)}"
+        else:
+            product_data = dict(
+                identifier=identifier,
+                attribute=attribute_code,
+                locale=locale,
+                scope=scope,
+            )
+            post_data["product"] = f"{json.dumps(product_data)}"
 
-        post_data["file"] = filepath
+        headers = {"Content-Type": "multipart/form-data"}
 
         return self.__call_authenticated_api(
-            type,
+            "media-files",
             method="POST",
-            additional_headers={"Content-Type": "multipart/form-data"},
+            additional_headers=headers,
+            data=post_data,
+        )
+
+    def put_asset_file(self, filepath):
+        post_data = dict(file=filepath)
+
+        headers = {"Content-Type": "multipart/form-data"}
+
+        return self.__call_authenticated_api(
+            "asset-media-files",
+            method="POST",
+            additional_headers=headers,
             data=post_data,
         )
