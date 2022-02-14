@@ -235,21 +235,22 @@ class AkeneoClient:
 
         if all:
             result = self.__call_authenticated_api(path, filters=filters)
-            json = result["json"]
+            json_result = result["json"]
             next_page = False
-            if "_links" in json and "next" in json["_links"]:
-                next_page = json["_links"]["next"]["href"]
+            if "_links" in json_result and "next" in json_result["_links"]:
+                next_page = json_result["_links"]["next"]["href"]
             while next_page:
-                next_result = self.__call_authenticated_url(next_page)
-                json["_embedded"]["items"] = (
-                    json["_embedded"]["items"] + next_result["_embedded"]["items"]
+                next_result = self.__call_authenticated_url(next_page)["json"]
+                json_result["_embedded"]["items"] = (
+                    json_result["_embedded"]["items"]
+                    + next_result["_embedded"]["items"]
                 )
                 if "_links" in next_result and "next" in next_result["_links"]:
                     next_page = next_result["_links"]["next"]["href"]
                 else:
                     next_page = False
-            del json["_links"]
-            del json["current_page"]
+            del json_result["_links"]
+            del json_result["current_page"]
         else:
             result = self.__call_authenticated_api(path, filters=filters)
         return result
