@@ -278,7 +278,7 @@ class AkeneoClient:
         if sub_sub_type is not None:
             path += f"/{sub_sub_type}/{sub_sub_code}"
 
-        return self.__call_authenticated_api(path, method="DELETE")
+        return self.__call_authenticated_api(path, method="DELETE", data=dict())
 
     def post(
         self,
