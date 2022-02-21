@@ -291,13 +291,21 @@ class AkeneoClient:
         sub_sub_code=None,
         data=dict(),
     ):
-        path = f"{type}/{code}"
+        path = type
+        if code is not None:
+            path += f"/{code}"
 
         if sub_type is not None:
-            path += f"/{sub_type}/{sub_code}"
+            path += f"/{sub_type}"
+
+        if sub_code is not None:
+            path += f"/{sub_code}"
 
         if sub_sub_type is not None:
-            path += f"/{sub_sub_type}/{sub_sub_code}"
+            path += f"/{sub_sub_type}"
+
+        if sub_sub_code is not None:
+            path += f"/{sub_sub_code}"
 
         return self.__call_authenticated_api(path, method="POST", data=data)
 
