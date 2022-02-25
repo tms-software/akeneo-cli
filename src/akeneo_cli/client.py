@@ -23,8 +23,8 @@ class AkeneoClient:
     __client_id = None
     __client_secret = None
     __token = None
-    __refresh_token = None
-    __expiration_date = None
+    __refresh_token = 0
+    __expiration_date = datetime.now()
 
     def __init__(self, endpoint, client_id, client_secret):
         self.endpoint = endpoint
@@ -38,8 +38,8 @@ class AkeneoClient:
         self.__client_id = None
         self.__client_secret = None
         self.__token = None
-        self.__refresh_token = None
-        self.__expiration_date = None
+        self.__refresh_token = 0
+        self.__expiration_date = datetime.now()
 
     def __call(self, url, method="GET", data=None, additional_headers={}):
         files = None
@@ -119,22 +119,23 @@ class AkeneoClient:
             url, method=method, data=data, additional_headers=additional_headers
         )
 
-    def __get_token(self, data):
-        result = self.__call_api(
-            "token",
-            method="POST",
-            data=data,
-            additional_headers=self.get_basic_auth_header(),
-            path_suffix="api/oauth",
-        )
-        self.__check_response_struct(
-            ["access_token", "refresh_token", "expires_in"], result["json"]
-        )
-        self.__expiration_date = datetime.now() + timedelta(
-            seconds=result["json"]["expires_in"]
-        )
-        self.__token = result["json"]["access_token"]
-        self.__refresh_token = result["json"]["refresh_token"]
+    def __set_or_refresh_token(self, data):
+        if self.__token_has_expired():
+            result = self.__call_api(
+                "token",
+                method="POST",
+                data=data,
+                additional_headers=self.get_basic_auth_header(),
+                path_suffix="api/oauth",
+            )
+            self.__check_response_struct(
+                ["access_token", "refresh_token", "expires_in"], result["json"]
+            )
+            self.__expiration_date = datetime.now() + timedelta(
+                seconds=result["json"]["expires_in"]
+            )
+            self.__token = result["json"]["access_token"]
+            self.__refresh_token = result["json"]["refresh_token"]
 
     def __call_authenticated_api(
         self,
@@ -146,13 +147,7 @@ class AkeneoClient:
         version="v1",
         filters=None,
     ):
-        if datetime.now() > (
-            self.__expiration_date + timedelta(seconds=self.refresh_before)
-        ):
-            logging.info(
-                f"The token will expire in less than {self.refresh_before}s. Refreshing it..."
-            )
-            self.refresh_token()
+        self.refresh_token()
         additional_headers["Authorization"] = f"Bearer {self.__token}"
         return self.__call_api(
             path, method, data, additional_headers, path_suffix, version, filters
@@ -165,13 +160,7 @@ class AkeneoClient:
         data=None,
         additional_headers={},
     ):
-        if datetime.now() > (
-            self.__expiration_date + timedelta(seconds=self.refresh_before)
-        ):
-            logging.info(
-                f"The token will expire in less than {self.refresh_before}s. Refreshing it..."
-            )
-            self.refresh_token()
+        self.refresh_token()
         additional_headers["Authorization"] = f"Bearer {self.__token}"
         return self.__call(url, method, data, additional_headers)
 
@@ -180,20 +169,20 @@ class AkeneoClient:
             if expect not in response_struct:
                 raise Akeneo_UnexpectedResponse(expect, response_struct)
 
-    def login(self, username, password):
-        data = dict(username=username, password=password, grant_type="password")
-        self.__get_token(data)
-        logging.info(
-            f"Login successful ! Token will expire at {self.__expiration_date}"
+    def __token_has_expired(self):
+        return datetime.now() > (
+            self.__expiration_date - timedelta(seconds=self.refresh_before)
         )
+
+    def login(self, username, password):
+        if self.__token_has_expired():
+            data = dict(username=username, password=password, grant_type="password")
+            self.__set_or_refresh_token(data)
         return self
 
     def refresh_token(self):
         data = dict(refresh_token=self.__refresh_token, grant_type="refresh_token")
-        self.__get_token(data)
-        logging.info(
-            f"Token refresh successful ! New token will expire at {self.__expiration_date}"
-        )
+        self.__set_or_refresh_token(data)
         return self
 
     def get_basic_auth_header(self):
