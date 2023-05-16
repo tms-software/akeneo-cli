@@ -45,8 +45,10 @@ class AkeneoClient:
         files = None
         headers = {**self.__headers, **additional_headers}
         if headers["Content-Type"] == "application/json":
+            if data is not None:
+                data = json.dumps(data)
             response = getattr(requests, method.lower())(
-                url, verify=False, headers=headers, data=json.dumps(data)
+                url, verify=False, headers=headers, data=data
             )
 
         elif headers["Content-Type"] == "multipart/form-data":

@@ -37,7 +37,7 @@ def main():
                     args.code,
                     filters=dict(page=args.page, limit=args.per_page),
                 )
-    print(json.dumps(result, indent=4))
+                print(json.dumps(result["json"], indent=4))
 
 
 def getArgParser():
