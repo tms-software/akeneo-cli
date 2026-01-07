@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="akeneo-cli",
-    version="1.0.9",
+    version="1.0.10",
     url="https://github.com/tms-software/akeneo-cli",
     author="Franck COUTOULY",
     author_email="franck.coutouly@tms-software.ch",

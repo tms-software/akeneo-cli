@@ -19,7 +19,7 @@ class Akeneo_RequestException(Akeneo_Exception):
         else:
             response_body = response.text
         super().__init__(
-            f"ERROR {status_code} {response.request.method} {response.url}\nData sent : {request_body}\nData recieved : {response_body}"
+            f"ERROR {status_code} {response.request.method} {response.url}\n \nResponse from Akeneo : {response_body}"
         )
 
 
